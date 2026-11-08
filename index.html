@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PennyWise – Take Control of Your Money</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ========== SIDEBAR NAV ========== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">💰</span>
+      <span class="logo-text">PennyWise</span>
+    </div>
+    <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-link active" data-page="dashboard">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <a href="#" class="nav-link" data-page="income">
+      <span class="nav-icon">💵</span> Income
+    </a>
+    <a href="#" class="nav-link" data-page="expenses">
+      <span class="nav-icon">💳</span> Expenses
+    </a>
+    <a href="#" class="nav-link" data-page="budget">
+      <span class="nav-icon">🎯</span> Budget
+    </a>
+    <a href="#" class="nav-link" data-page="savings">
+      <span class="nav-icon">🏦</span> Savings
+    </a>
+    <a href="#" class="nav-link" data-page="transactions">
+      <span class="nav-icon">📋</span> Transactions
+    </a>
+    <a href="#" class="nav-link" data-page="reports">
+      <span class="nav-icon">📈</span> Reports
+    </a>
+    <a href="#" class="nav-link" data-page="settings">
+      <span class="nav-icon">⚙️</span> Settings
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span>PennyWise v1.0</span>
+  </div>
+</aside>
+
+<!-- ========== MAIN WRAPPER ========== -->
+<div class="main-wrapper" id="mainWrapper">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <span class="current-month" id="topbarMonth"></span>
+    </div>
+  </header>
+
+  <!-- ====== PAGES ====== -->
+  <main class="page-content">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p class="page-subtitle" id="dashboardSubtitle"></p>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="card summary-card income-card">
+          <div class="card-icon">💵</div>
+          <div class="card-info">
+            <span class="card-label">Monthly Income</span>
+            <span class="card-value" id="dashIncome">$0.00</span>
+          </div>
+        </div>
+        <div class="card summary-card expense-card">
+          <div class="card-icon">💳</div>
+          <div class="card-info">
+            <span class="card-label">Monthly Expenses</span>
+            <span class="card-value" id="dashExpenses">$0.00</span>
+          </div>
+        </div>
+        <div class="card summary-card balance-card">
+          <div class="card-icon">💰</div>
+          <div class="card-info">
+            <span class="card-label">Remaining Balance</span>
+            <span class="card-value" id="dashBalance">$0.00</span>
+          </div>
+        </div>
+        <div class="card summary-card savings-card">
+          <div class="card-icon">🏦</div>
+          <div class="card-info">
+            <span class="card-label">Total Savings</span>
+            <span class="card-value" id="dashSavings">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget Progress -->
+      <div class="card budget-progress-card">
+        <div class="budget-progress-header">
+          <h3>Monthly Budget</h3>
+          <span class="budget-status-badge" id="dashBudgetBadge">No budget set</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="dashBudgetBar" style="width:0%"></div>
+        </div>
+        <div class="budget-progress-info">
+          <span id="dashBudgetSpent">Spent: $0.00</span>
+          <span id="dashBudgetLimit">Budget: Not set</span>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="card chart-card">
+          <h3>Income vs Expenses</h3>
+          <canvas id="incomeExpenseChart"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Expense Breakdown</h3>
+          <canvas id="expenseCategoryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="card recent-tx-card">
+        <div class="card-header-row">
+          <h3>Recent Transactions</h3>
+          <button class="btn btn-ghost" data-page="transactions">View All</button>
+        </div>
+        <div id="recentTransactions" class="tx-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== INCOME PAGE ===== -->
+    <section class="page" id="page-income">
+      <div class="page-header">
+        <h1>Income</h1>
+        <button class="btn btn-primary" id="openAddIncomeModal">+ Add Income</button>
+      </div>
+
+      <div class="card">
+        <table class="data-table" id="incomeTable">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="incomeTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="incomeEmpty">
+          <span class="empty-icon">💵</span>
+          <p>No income records yet. Add your first income source.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EXPENSES PAGE ===== -->
+    <section class="page" id="page-expenses">
+      <div class="page-header">
+        <h1>Expenses</h1>
+        <button class="btn btn-primary" id="openAddExpenseModal">+ Add Expense</button>
+      </div>
+
+      <div class="card">
+        <table class="data-table" id="expenseTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="expenseEmpty">
+          <span class="empty-icon">💳</span>
+          <p>No expenses recorded yet. Add your first expense.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BUDGET PAGE ===== -->
+    <section class="page" id="page-budget">
+      <div class="page-header">
+        <h1>Budget</h1>
+      </div>
+
+      <div class="budget-grid">
+        <!-- Set Budget Card -->
+        <div class="card budget-set-card">
+          <h3>Monthly Budget</h3>
+          <div class="budget-form">
+            <label for="budgetInput">Set Monthly Budget</label>
+            <div class="budget-input-row">
+              <input type="number" id="budgetInput" min="0" step="0.01" placeholder="0.00" />
+              <button class="btn btn-primary" id="saveBudgetBtn">Save</button>
+            </div>
+          </div>
+          <div class="budget-summary-items">
+            <div class="budget-item">
+              <span class="bi-label">Monthly Budget</span>
+              <span class="bi-value" id="budgetLimitDisplay">Not set</span>
+            </div>
+            <div class="budget-item">
+              <span class="bi-label">Total Spent (this month)</span>
+              <span class="bi-value danger" id="budgetSpentDisplay">$0.00</span>
+            </div>
+            <div class="budget-item">
+              <span class="bi-label">Remaining Budget</span>
+              <span class="bi-value success" id="budgetRemainingDisplay">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="card budget-progress-detail-card">
+          <h3>Budget Usage</h3>
+          <div class="big-progress-wrap">
+            <div class="big-progress-bar">
+              <div class="big-progress-fill" id="budgetProgressFill" style="width:0%"></div>
+            </div>
+            <span class="big-progress-pct" id="budgetProgressPct">0%</span>
+          </div>
+          <div class="budget-warning" id="budgetWarning"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SAVINGS PAGE ===== -->
+    <section class="page" id="page-savings">
+      <div class="page-header">
+        <h1>Savings</h1>
+      </div>
+
+      <div class="savings-grid">
+        <div class="card savings-stat-card">
+          <div class="savings-icon">💵</div>
+          <div class="savings-info">
+            <span class="savings-label">Total Income</span>
+            <span class="savings-value" id="savTotalIncome">$0.00</span>
+          </div>
+        </div>
+        <div class="card savings-stat-card">
+          <div class="savings-icon">💳</div>
+          <div class="savings-info">
+            <span class="savings-label">Total Expenses</span>
+            <span class="savings-value danger" id="savTotalExpenses">$0.00</span>
+          </div>
+        </div>
+        <div class="card savings-stat-card highlight-card">
+          <div class="savings-icon">🏦</div>
+          <div class="savings-info">
+            <span class="savings-label">Savings (Income − Expenses)</span>
+            <span class="savings-value" id="savAmount">$0.00</span>
+          </div>
+        </div>
+        <div class="card savings-stat-card">
+          <div class="savings-icon">📊</div>
+          <div class="savings-info">
+            <span class="savings-label">Savings Rate</span>
+            <span class="savings-value success" id="savRate">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card savings-tips-card">
+        <h3>Savings Insight</h3>
+        <p id="savingsInsight">Add income and expenses to see your savings analysis.</p>
+      </div>
+    </section>
+
+    <!-- ===== TRANSACTIONS PAGE ===== -->
+    <section class="page" id="page-transactions">
+      <div class="page-header">
+        <h1>Transactions</h1>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="card filter-bar">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="txSearch">Search</label>
+            <input type="text" id="txSearch" placeholder="Search by title…" />
+          </div>
+          <div class="filter-group">
+            <label for="txFilterType">Type</label>
+            <select id="txFilterType">
+              <option value="all">All</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="txFilterCategory">Category</label>
+            <select id="txFilterCategory">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="txSortDate">Sort</label>
+            <select id="txSortDate">
+              <option value="desc">Newest First</option>
+              <option value="asc">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="data-table" id="txTable">
+          <thead>
+            <tr>
+              <th>Title / Source</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="txTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="txEmpty">
+          <span class="empty-icon">📋</span>
+          <p>No transactions found.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REPORTS PAGE ===== -->
+    <section class="page" id="page-reports">
+      <div class="page-header">
+        <h1>Monthly Reports</h1>
+      </div>
+
+      <!-- Month Picker -->
+      <div class="card report-month-picker">
+        <button class="btn btn-ghost" id="reportPrevMonth">← Prev</button>
+        <span class="report-month-label" id="reportMonthLabel"></span>
+        <button class="btn btn-ghost" id="reportNextMonth">Next →</button>
+      </div>
+
+      <!-- Report Summary Cards -->
+      <div class="summary-cards report-summary">
+        <div class="card summary-card income-card">
+          <div class="card-icon">💵</div>
+          <div class="card-info">
+            <span class="card-label">Income</span>
+            <span class="card-value" id="reportIncome">$0.00</span>
+          </div>
+        </div>
+        <div class="card summary-card expense-card">
+          <div class="card-icon">💳</div>
+          <div class="card-info">
+            <span class="card-label">Expenses</span>
+            <span class="card-value" id="reportExpenses">$0.00</span>
+          </div>
+        </div>
+        <div class="card summary-card savings-card">
+          <div class="card-icon">🏦</div>
+          <div class="card-info">
+            <span class="card-label">Savings</span>
+            <span class="card-value" id="reportSavings">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Charts -->
+      <div class="charts-row">
+        <div class="card chart-card">
+          <h3>Category Breakdown</h3>
+          <canvas id="reportCategoryChart"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>6-Month Spending Trend</h3>
+          <canvas id="reportTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Category Table -->
+      <div class="card">
+        <h3>Expense by Category</h3>
+        <table class="data-table" id="reportCategoryTable">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>% of Expenses</th>
+            </tr>
+          </thead>
+          <tbody id="reportCategoryTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="reportEmpty">
+          <span class="empty-icon">📈</span>
+          <p>No data for this month.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <section class="page" id="page-settings">
+      <div class="page-header">
+        <h1>Settings & Data</h1>
+      </div>
+
+      <div class="settings-grid">
+        <div class="card settings-card">
+          <h3>📤 Export Data</h3>
+          <p>Download all your financial data as a JSON backup file.</p>
+          <button class="btn btn-primary" id="exportDataBtn">Export JSON</button>
+        </div>
+
+        <div class="card settings-card">
+          <h3>📥 Import Data</h3>
+          <p>Restore data from a previously exported JSON file. This will replace all current data.</p>
+          <label class="btn btn-secondary file-label" for="importFileInput">Choose File</label>
+          <input type="file" id="importFileInput" accept=".json" style="display:none" />
+          <span class="import-filename" id="importFilename">No file chosen</span>
+          <button class="btn btn-primary" id="importDataBtn" disabled>Import</button>
+        </div>
+
+        <div class="card settings-card danger-card">
+          <h3>🗑️ Clear All Data</h3>
+          <p>Permanently delete all transactions and settings. This cannot be undone.</p>
+          <button class="btn btn-danger" id="clearAllDataBtn">Clear All Data</button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- end .page-content -->
+</div><!-- end .main-wrapper -->
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- Overlay -->
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<!-- ===== ADD / EDIT INCOME MODAL ===== -->
+<div class="modal" id="incomeModal" role="dialog" aria-modal="true" aria-labelledby="incomeModalTitle">
+  <div class="modal-header">
+    <h2 id="incomeModalTitle">Add Income</h2>
+    <button class="modal-close" data-modal="incomeModal" aria-label="Close">✕</button>
+  </div>
+  <div class="modal-body">
+    <form id="incomeForm" novalidate>
+      <input type="hidden" id="incomeEditId" />
+      <div class="form-group">
+        <label for="incomeSource">Income Source <span class="required">*</span></label>
+        <select id="incomeSource" required>
+          <option value="">Select source…</option>
+          <option value="Salary">Salary</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Allowance">Allowance</option>
+          <option value="Business">Business Income</option>
+          <option value="Investment">Investment</option>
+          <option value="Other">Other</option>
+        </select>
+        <span class="field-error" id="incomeSourceErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="incomeAmount">Amount ($) <span class="required">*</span></label>
+        <input type="number" id="incomeAmount" min="0.01" step="0.01" placeholder="0.00" required />
+        <span class="field-error" id="incomeAmountErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="incomeDate">Date <span class="required">*</span></label>
+        <input type="date" id="incomeDate" required />
+        <span class="field-error" id="incomeDateErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="incomeDesc">Description</label>
+        <textarea id="incomeDesc" rows="2" placeholder="Optional note…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-modal="incomeModal">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="incomeSubmitBtn">Add Income</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== ADD / EDIT EXPENSE MODAL ===== -->
+<div class="modal" id="expenseModal" role="dialog" aria-modal="true" aria-labelledby="expenseModalTitle">
+  <div class="modal-header">
+    <h2 id="expenseModalTitle">Add Expense</h2>
+    <button class="modal-close" data-modal="expenseModal" aria-label="Close">✕</button>
+  </div>
+  <div class="modal-body">
+    <form id="expenseForm" novalidate>
+      <input type="hidden" id="expenseEditId" />
+      <div class="form-group">
+        <label for="expenseTitle">Title <span class="required">*</span></label>
+        <input type="text" id="expenseTitle" placeholder="e.g. Grocery run" required />
+        <span class="field-error" id="expenseTitleErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="expenseCategory">Category <span class="required">*</span></label>
+        <select id="expenseCategory" required>
+          <option value="">Select category…</option>
+          <option value="Food">Food</option>
+          <option value="Transportation">Transportation</option>
+          <option value="Housing">Housing</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Education">Education</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Bills & Utilities">Bills &amp; Utilities</option>
+          <option value="Other">Other</option>
+        </select>
+        <span class="field-error" id="expenseCategoryErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="expenseAmount">Amount ($) <span class="required">*</span></label>
+        <input type="number" id="expenseAmount" min="0.01" step="0.01" placeholder="0.00" required />
+        <span class="field-error" id="expenseAmountErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="expenseDate">Date <span class="required">*</span></label>
+        <input type="date" id="expenseDate" required />
+        <span class="field-error" id="expenseDateErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="expenseDesc">Description</label>
+        <textarea id="expenseDesc" rows="2" placeholder="Optional note…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-modal="expenseModal">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="expenseSubmitBtn">Add Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== CONFIRM MODAL ===== -->
+<div class="modal modal-sm" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+  <div class="modal-header">
+    <h2 id="confirmModalTitle">Confirm</h2>
+    <button class="modal-close" data-modal="confirmModal" aria-label="Close">✕</button>
+  </div>
+  <div class="modal-body">
+    <p id="confirmModalMessage">Are you sure?</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-modal="confirmModal">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirmModalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST NOTIFICATION ===== -->
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
